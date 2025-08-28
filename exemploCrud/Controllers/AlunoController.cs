@@ -35,7 +35,7 @@ namespace exemploCrud.Controllers
                 return Conflict("Aluno com este CPF já existe.");
             }
             alunos.Add(novoAluno);
-            return CreatedAtAction(nameof(GetAlunoByCpf), new { cpf = novoAluno.cpf }, novoAluno);
+            return Ok("Aluno criado com sucesso");
         }
         [HttpPut("alunos/{cpf}")]
         public ActionResult<Models.AlunoDTO> UpdateAluno(string cpf, [FromBody] Models.AlunoDTO alunoAtualizado)
