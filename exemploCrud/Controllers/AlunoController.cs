@@ -1,4 +1,5 @@
 ﻿using exemploCrud.Models;
+using exemploCrud.Repository;
 using Microsoft.AspNetCore.Mvc;
 
 namespace exemploCrud.Controllers
@@ -7,56 +8,68 @@ namespace exemploCrud.Controllers
     [Route("api/[controller]")]
     public class AlunoController : ControllerBase
     {
-        private static List<AlunoDTO> alunos = new List<AlunoDTO>();
+        private IAlunoRepository _alunoRepository;
+
+        public AlunoController(IAlunoRepository alunoRepository)
+        {
+            _alunoRepository = alunoRepository;
+        }
 
         [HttpGet("alunos")]
-        public ActionResult<List<Models.AlunoDTO>> GetAlunos()
+        public ActionResult<List<Models.AlunoDTO>> ObterAlunos()
         {
-            return Ok(alunos);
+            return Ok(_alunoRepository.ObterTodos());
         }
         [HttpGet("alunos/{cpf}")]
-        public ActionResult<Models.AlunoDTO> GetAlunoByCpf(string cpf)
+        public ActionResult<Models.AlunoDTO> ObterAlunoByCpf(string cpf)
         {
-            var aluno = alunos.FirstOrDefault(a => a.cpf == cpf);
-            if (aluno == null)
+            var resultado = _alunoRepository.ObterPorCpf(cpf);
+           
+            if (resultado == null)
             {
                 return NotFound();
             }
-            return Ok(aluno);
+            return Ok(resultado);
         }
 
         [HttpPost("alunos")]
-        public ActionResult<Models.AlunoDTO> CreateAluno([FromBody] Models.AlunoDTO novoAluno)
+        public ActionResult<Models.AlunoDTO> CriarAluno([FromBody] Models.AlunoDTO novoAluno)
         {
 
+            var resultado = _alunoRepository.ObterPorCpf(novoAluno.cpf);
 
-            if (alunos.Any(a => a.cpf == novoAluno.cpf))
+            if (resultado is not null)
             {
-                return Conflict("Aluno com este CPF já existe.");
+                return BadRequest("Aluno com este CPF já existe.");
             }
-            alunos.Add(novoAluno);
+            _alunoRepository.Adicionar(novoAluno);
+
             return Ok("Aluno criado com sucesso");
         }
         [HttpPut("alunos/{cpf}")]
         public ActionResult<Models.AlunoDTO> UpdateAluno(string cpf, [FromBody] Models.AlunoDTO alunoAtualizado)
-        {
-            var aluno = alunos.FirstOrDefault(a => a.cpf == cpf);
-            if (aluno == null)
+        {        
+            var alunoExistente = _alunoRepository.ObterPorCpf(cpf);
+
+            if (alunoExistente == null)
             {
-                return NotFound();
+                return NotFound("Aluno não encontrado");
             }
-            aluno.nome = alunoAtualizado.nome;
-            return Ok(aluno);
+            _alunoRepository.Atualizar(cpf, alunoAtualizado);
+
+            return Ok("Aluno atualizado com sucesso");
         }
         [HttpDelete("alunos/{cpf}")]
         public ActionResult DeleteAluno(string cpf)
         {
-            var aluno = alunos.FirstOrDefault(a => a.cpf == cpf);
-            if (aluno == null)
+            var alunoExistente = _alunoRepository.ObterPorCpf(cpf);
+
+            if (alunoExistente == null)
             {
-                return NotFound();
+                return NotFound("Aluno não encontrado");
             }
-            alunos.Remove(aluno);
+            _alunoRepository.Remover(cpf);
+
             return NoContent();
         }
     }
