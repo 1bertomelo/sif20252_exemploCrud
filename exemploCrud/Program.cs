@@ -1,4 +1,5 @@
 using exemploCrud.Repository;
+using exemploCrud.Services;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,7 @@ builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
 
 builder.Services.AddSingleton<IAlunoRepository, AlunoRepository>();
+builder.Services.AddSingleton<IAlunoService, AlunoService>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
